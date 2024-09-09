@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng kí môn học</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+
+<div class="container mt-5">
+    <div th:include="subTemplates/header-home.html"> </div>
+    <br>
+    <br>
+    <h2>Đăng kí môn học</h2>
+
+    <div class="form-group">
+        <label for="coursesDropdown">Chọn môn học:</label>
+        <select class="form-control" id="coursesDropdown" onchange="redirectToSelectedSubject()">
+            <option value="">Chọn một môn học</option>
+            <!-- Sử dụng Thymeleaf để lặp qua danh sách các môn học và hiển thị chúng -->
+            <th:block th:each="subject : ${listSubject}">
+                <option th:value="${subject.id}" th:text="${subject.name}"></option>
+            </th:block>
+        </select>
+    </div>
+
+    <script>
+        // Hàm này được gọi khi trang được load lại
+        window.onload = function() {
+            // Lấy id của môn học từ đường dẫn URL
+            var selectedSubjectId = window.location.pathname.split('/').pop();
+
+            // Kiểm tra xem selectedSubjectId có giá trị không rỗng
+            if (selectedSubjectId) {
+                // Đặt giá trị của dropdown thành id của môn học được chọn trước đó
+                document.getElementById("coursesDropdown").value = selectedSubjectId;
+            }
+        };
+
+        function redirectToSelectedSubject() {
+            // Lấy giá trị id của môn học được chọn
+            var selectedSubjectId = document.getElementById("coursesDropdown").value;
+
+            // Kiểm tra xem giá trị đã được chọn chưa
+            if (selectedSubjectId) {
+                // Chuyển hướng đến URL mong muốn với id của môn học được chọn được thêm vào
+                window.location.href = "/subject/" + selectedSubjectId;
+            }
+        }
+    </script>
+
+
+    <h3>Các lớp học phần có thể đăng kí</h3>
+    <table class="table" id="availableClassesTable">
+        <thead>
+        <tr>
+            <th>Nhóm</th>
+            <th>Tên lớp học phần</th>
+            <th>Thời gian</th>
+            <th>Chọn</th>
+        </tr>
+        </thead>
+        <tbody id="availableClassesBody">
+        <!-- Thymeleaf iteration to populate table rows -->
+        <tr th:each="schedule : ${listSchedule}">
+            <td th:text="${schedule.getSectionClass().getName()}"></td>
+            <td th:text="${schedule.getSectionClass().getSubjectOfSemester().getSubject().getName()}"></td>
+            <td th:text="${schedule.getPeriod().getName()} + ' ' +  ${schedule.getDay().getName()} +' '+ ${schedule.getPeriod().getDescription()}"></td>
+            <td>
+                <!-- Thymeleaf checkbox -->
+                <input type="checkbox" class="classCheckbox" onchange="redirectToSelectedSchedule(this)">
+                <input type="hidden" class="scheduleId" th:value="${schedule.getId()}">
+            </td>
+        </tr>
+        </tbody>
+    </table>
+<!--    <h3 th:text="${error}" style="color: red"></h3>-->
+
+<!--    <h3 th:text="${error}" style="display: none; color: red" id="errorMessage"></h3>-->
+    <h3 th:text="${error}" style="display: none; color: red" id="errorMessage"></h3>
+    <style>
+        .error-dialog {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            border: 1px solid #ccc;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            border-radius: 5px;
+            z-index: 9999; /* Đảm bảo dialog hiển thị trên các phần tử khác */
+            text-align: center; /* Canh giữa nội dung */
+        }
+
+        .error-dialog p {
+            color: red; /* Màu chữ đỏ */
+            font-weight: bold; /* Chữ in đậm */
+            font-size: 20px; /* Kích thước chữ lớn hơn */
+            margin-bottom: 10px;
+        }
+
+        .error-dialog button {
+            padding: 8px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .error-dialog button:hover {
+            background-color: #0056b3;
+        }
+
+
+    </style>
+
+    <script>
+        // Kiểm tra nếu có error và dữ liệu error khác rỗng, hiển thị dialog
+        var errorMessage = document.getElementById('errorMessage').innerText.trim();
+        if (errorMessage !== '') {
+            // Tạo dialog
+            var dialog = document.createElement('div');
+            dialog.className = 'error-dialog';
+
+            // Tạo nội dung cho dialog
+            var dialogContent = document.createElement('p');
+            dialogContent.innerText = errorMessage;
+
+            // Tạo nút OK
+            var okButton = document.createElement('button');
+            okButton.innerText = 'OK';
+
+            // Khi click vào nút OK, đóng dialog
+            okButton.addEventListener('click', function() {
+                dialog.style.display = 'none';
+            });
+
+            // Thêm nội dung và nút vào dialog
+            dialog.appendChild(dialogContent);
+            dialog.appendChild(okButton);
+
+            // Thêm dialog vào trang
+            document.body.appendChild(dialog);
+        }
+    </script>
+
+
+
+
+    <script>
+        function redirectToSelectedSchedule(checkbox) {
+            // Lấy giá trị id của môn học được chọn
+            var selectedScheduleId = checkbox.parentElement.querySelector('.scheduleId').value;
+
+            // Kiểm tra xem giá trị đã được chọn chưa
+            if (selectedScheduleId) {
+                // Chuyển hướng đến URL mong muốn với id của môn học được chọn được thêm vào
+                window.location.href = "/schedule/" + selectedScheduleId;
+            }
+        }
+    </script>
+
+
+    <h3>Các lớp học phần đã đăng kí</h3>
+    <table class="table">
+        <thead>
+        <tr>
+            <th>Nhóm</th>
+            <th>Tên lớp học phần</th>
+            <th>Thời gian dạy</th>
+            <th>Thời gian đăng kí</th>
+            <th>Action</th>
+        </tr>
+        </thead>
+        <tbody id="registeredClasses">
+        <!-- Thymeleaf iteration to populate table rows -->
+        <tr th:each="picked : ${listPicked}">
+            <td th:text="${picked.sectionClass.getName()}"></td>
+            <td th:text="${picked.getSectionClass().getSubjectOfSemester().getSubject().getName()}"></td>
+            <td th:text="${picked.getSectionClass().getSchedules().get(0).getPeriod().getName()} + ' ' +  ${picked.getSectionClass().getSchedules().get(0).getDay().getName()} +' '+ ${picked.getSectionClass().getSchedules().get(0).getPeriod().getDescription()}"></td>
+            <td th:text="${picked.pickedTime}"></td>
+            <td>
+                <button th:id="'delete-btn-' + ${picked.id}" class="delete-btn btn btn-danger" th:attr="data-id=${picked.id}">Xóa</button>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+
+        <!-- Hộp thoại confirm -->
+        <div id="confirm-dialog" class="confirm-dialog">
+            <div class="confirm-content">
+                <p>Bạn có chắc muốn xóa lớp học phần này không?</p>
+                <button id="confirm-ok-btn" class="confirm-btn">OK</button>
+                <button id="confirm-cancel-btn" class="confirm-btn">Cancel</button>
+            </div>
+        </div>
+
+        <style>
+
+            /* CSS cho hộp thoại confirm */
+            .confirm-dialog {
+                display: none;
+                position: fixed;
+                z-index: 9999;
+                left: 0;
+                top: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0, 0, 0, 0.5);
+                overflow: auto;
+            }
+
+            .confirm-content {
+                background-color: #fefefe;
+                margin: 15% auto;
+                padding: 20px;
+                border: 1px solid #888;
+                width: 50%;
+                text-align: center;
+            }
+
+            .confirm-btn {
+                margin: 5px;
+                padding: 10px 20px;
+                cursor: pointer;
+            }
+
+            .confirm-btn:hover {
+                background-color: #ddd;
+            }
+        </style>
+
+        <script>
+
+            // Bắt sự kiện click trên nút button xóa
+            // Bắt sự kiện click trên nút button xóa
+            document.addEventListener('DOMContentLoaded', function () {
+                var deleteButtons = document.querySelectorAll('.delete-btn');
+                deleteButtons.forEach(function (button) {
+                    button.addEventListener('click', function (event) {
+                        var id = event.target.dataset.id; // Lấy id của lớp học phần từ thuộc tính data-id của nút xóa
+                        // Hiển thị hộp confirm
+                        document.getElementById('confirm-dialog').style.display = 'block';
+                        // Bắt sự kiện click trên nút OK
+                        document.getElementById('confirm-ok-btn').addEventListener('click', function () {
+                            // Thực hiện hành động xóa ở đây
+                            window.location.href = '/delete/' + id; // Chuyển đến đường dẫn xóa
+                        });
+                        // Bắt sự kiện click trên nút Cancel
+                        document.getElementById('confirm-cancel-btn').addEventListener('click', function () {
+                            // Ẩn hộp confirm nếu người dùng chọn Cancel
+                            document.getElementById('confirm-dialog').style.display = 'none';
+                        });
+                    });
+                });
+            });
+        </script>
+
+</div>
+
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

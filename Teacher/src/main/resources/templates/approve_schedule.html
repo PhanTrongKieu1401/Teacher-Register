@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Phê duyệt lịch đăng kí</title>
+  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    .bold {
+      font-weight: bold;
+    }
+  </style>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+</head>
+<body>
+
+<div class="container mt-5">
+  <div th:include="subTemplates/header-home.html"> </div>
+
+  <h2>Phê duyệt lịch đăng kí</h2>
+
+  <!-- Dropdown list of courses -->
+  <div class="form-group">
+    <label for="coursesDropdown">Chọn môn học:</label>
+    <select class="form-control" id="coursesDropdown" onchange="redirectToSelectedSubject()">
+      <option value="">Chọn một môn học</option>
+      <!-- Sử dụng Thymeleaf để lặp qua danh sách các môn học và hiển thị chúng -->
+      <th:block th:each="subject : ${listSubject}">
+        <option th:value="${subject.getId()}" th:text="${subject.getName()}"></option>
+      </th:block>
+    </select>
+  </div>
+
+
+  <script>
+    // Hàm này được gọi khi trang được load lại
+    window.onload = function() {
+      // Lấy id của môn học từ đường dẫn URL
+      var selectedSubjectId = window.location.pathname.split('/').pop();
+
+      // Kiểm tra xem selectedSubjectId có giá trị không rỗng
+      if (selectedSubjectId) {
+        // Đặt giá trị của dropdown thành id của môn học được chọn trước đó
+        document.getElementById("coursesDropdown").value = selectedSubjectId;
+      }
+    };
+
+    function redirectToSelectedSubject() {
+      // Lấy giá trị id của môn học được chọn
+      var selectedSubjectId = document.getElementById("coursesDropdown").value;
+
+      // Kiểm tra xem giá trị đã được chọn chưa
+      if (selectedSubjectId) {
+        // Chuyển hướng đến URL mong muốn với id của môn học được chọn được thêm vào
+        window.location.href = "/review/subject/" + selectedSubjectId;
+      }
+    }
+  </script>
+
+
+<!--  <h1 th:text="${error}" style="color: red"></h1>-->
+
+  <h3 th:text="${error2}" style="display: none; color: red" id="errorMessage"></h3>
+  <style>
+    .error-dialog {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background-color: white;
+      border: 1px solid #ccc;
+      padding: 20px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      border-radius: 5px;
+      z-index: 9999; /* Đảm bảo dialog hiển thị trên các phần tử khác */
+      text-align: center; /* Canh giữa nội dung */
+    }
+
+    .error-dialog p {
+      color: red; /* Màu chữ đỏ */
+      font-weight: bold; /* Chữ in đậm */
+      font-size: 20px; /* Kích thước chữ lớn hơn */
+      margin-bottom: 10px;
+    }
+
+    .error-dialog button {
+      padding: 8px 20px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .error-dialog button:hover {
+      background-color: #0056b3;
+    }
+
+
+  </style>
+
+  <script>
+    // Kiểm tra nếu có error và dữ liệu error khác rỗng, hiển thị dialog
+    var errorMessage = document.getElementById('errorMessage').innerText.trim();
+    if (errorMessage !== '') {
+      // Tạo dialog
+      var dialog = document.createElement('div');
+      dialog.className = 'error-dialog';
+
+      // Tạo nội dung cho dialog
+      var dialogContent = document.createElement('p');
+      dialogContent.innerText = errorMessage;
+
+      // Tạo nút OK
+      var okButton = document.createElement('button');
+      okButton.innerText = 'OK';
+
+      // Khi click vào nút OK, đóng dialog
+      okButton.addEventListener('click', function() {
+        dialog.style.display = 'none';
+      });
+
+      // Thêm nội dung và nút vào dialog
+      dialog.appendChild(dialogContent);
+      dialog.appendChild(okButton);
+
+      // Thêm dialog vào trang
+      document.body.appendChild(dialog);
+    }
+  </script>
+
+  <table class="table">
+    <thead>
+    <tr>
+      <th>Nhóm</th>
+      <th>Tên lớp học phần</th>
+      <th>Thời gian dạy</th>
+      <th>Thời gian đăng kí</th>
+      <th>Giảng viên</th>
+      <th>Action</th>
+    </tr>
+    </thead>
+    <tbody id="registeredClasses">
+    <!-- Thymeleaf iteration to populate table rows -->
+    <tr th:each="picked : ${listPicked}">
+      <td th:text="${picked.getId()}"></td>
+      <td th:text="${picked.getSectionClass().getSubjectOfSemester().getSubject().getName()}"></td>
+      <td th:text="${picked.getSectionClass().getSchedules().get(0).getPeriod().getName()} + ' ' +  ${picked.getSectionClass().getSchedules().get(0).getDay().getName()} +' '+ ${picked.getSectionClass().getSchedules().get(0).getPeriod().getDescription()}"></td>
+      <td th:text="${picked.pickedTime}"></td>
+      <td>
+<!--        <select th:id="'teacher-select-' + ${picked.id}" class="teacher-select form-control">-->
+<!--          &lt;!&ndash; Thymeleaf iteration to populate dropdown options &ndash;&gt;-->
+<!--          <option th:each="teacher : ${teacherList}" th:value="${teacher.getId()}" th:text="${teacher.getStaff().getMember().getName()}"></option>-->
+<!--        </select>-->
+        <select th:id="'teacher-select-' + ${picked.id}" class="teacher-select form-control">
+          <!-- Thymeleaf iteration to populate dropdown options -->
+          <option th:each="teacher : ${teacherList}"
+                  th:value="${teacher.getId()}"
+                  th:text="${teacher.getStaff().getMember().getName()}"
+                  th:selected="${picked.teacher != null and picked.teacher.id == teacher.id}"></option>
+        </select>
+      </td>
+<!--      <td>-->
+<!--        <button th:id="'delete-btn-' + ${picked.id}" class="delete-btn btn btn-danger"-->
+<!--                th:attr="data-pickedId=${picked.id}, data-teacherId='teacher-select-' + ${picked.id}">Lưu-->
+<!--        </button>-->
+<!--      </td>-->
+      <td>
+        <button th:id="'delete-btn-' + ${picked.id}" class="delete-btn btn btn-danger"
+                th:if="${picked.review == 1}"
+                th:text="'Đã Phê Duyệt'"
+                th:attr="data-pickedId=${picked.id}, data-teacherId='teacher-select-' + ${picked.id}"
+                disabled>Lưu</button>
+        <button th:id="'delete-btn-' + ${picked.id}" class="delete-btn btn btn-danger"
+                th:if="${picked.review != 1}"
+                th:attr="data-pickedId=${picked.id}, data-teacherId='teacher-select-' + ${picked.id}">Lưu</button>
+      </td>
+    </tr>
+    </tbody>
+  </table>
+  <script th:inline="javascript">
+    $(document).ready(function() {
+      $('.delete-btn').click(function() {
+        var pickedId = $(this).data('pickedid');
+        var teacherId = $('#' + $(this).data('teacherid')).val();
+        var url = '/review/save-picked?idpicked=' + pickedId + '&idteacher=' + teacherId;
+        window.location.href = url;
+      });
+    });
+  </script>
+
+  <!-- Button to save approval -->
+<!--  <button type="button" class="btn btn-primary" onclick="saveApproval()">Lưu phê duyệt</button>-->
+  <button type="button" class="btn btn-primary" onclick="confirmSaveApproval()">Lưu phê duyệt</button>
+
+</div>
+
+
+
+</script>
+
+<script>
+  // Function to handle confirming save approval
+  function confirmSaveApproval() {
+    // Hiển thị dialog xác nhận
+    var confirmation = confirm("Bạn có chắc chắn muốn lưu phê duyệt không?");
+
+    // Kiểm tra xem người dùng đã nhấn OK hay Cancel
+    if (confirmation) {
+      // Nếu nhấn OK, thực hiện các tác vụ lưu phê duyệt
+      saveApproval();
+    } else {
+      // Nếu nhấn Cancel, không làm gì cả
+    }
+  }
+
+  // Function to save approval
+  function saveApproval() {
+    var idPickeds = [];
+    // Loop through all selected items and add their IDs to the list
+    $('.delete-btn').each(function() {
+      idPickeds.push($(this).data('pickedid'));
+    });
+    // Create URL with list of picked IDs
+    var url = '/review/save-list-picked?idPickeds=' + idPickeds.join(',');
+    // Redirect to the controller method to handle saving the list
+    window.location.href = url;
+  }
+</script>
+
+
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+</body>
+</html>
